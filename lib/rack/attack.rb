@@ -124,8 +124,13 @@ class Rack::Attack
   @notifier             = ActiveSupport::Notifications if defined?(ActiveSupport::Notifications)
   @blocklisted_response = lambda {|env| [403, {'Content-Type' => 'text/plain'}, ["Forbidden\n"]] }
   @throttled_response   = lambda {|env|
-    retry_after = (env['rack.attack.match_data'] || {})[:period]
-    [429, {'Content-Type' => 'text/plain', 'Retry-After' => retry_after.to_s}, ["Retry later\n"]]
+    http_status = env['rack.attack.match_http_status'] || 429
+    if env['rack.attack.match_response'].present?
+      [http_status, {'Content-Type' => 'application/json'}, [env['rack.attack.match_response']]]
+    else
+      retry_after = (env['rack.attack.match_data'] || {})[:period]
+      [http_status, {'Content-Type' => 'text/plain', 'Retry-After' => retry_after.to_s}, ["Retry later\n"]]
+    end
   }
 
   def initialize(app)
@@ -135,7 +140,6 @@ class Rack::Attack
   def call(env)
     env['PATH_INFO'] = PathNormalizer.normalize_path(env['PATH_INFO'])
     req = Rack::Attack::Request.new(env)
-
     if safelisted?(req)
       @app.call(env)
     elsif blocklisted?(req)
