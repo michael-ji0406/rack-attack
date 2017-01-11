@@ -43,7 +43,6 @@ module Rack
             req.env['rack.attack.match_data']          = data
             req.env['rack.attack.match_response']      = custom_response
             req.env['rack.attack.match_http_status']   = http_status
-            puts req.env
             Rack::Attack.instrument(req)
           end
         end
