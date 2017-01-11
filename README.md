@@ -1,3 +1,17 @@
+This repo is forked from kickstarter/rack-attack
+The change is that we support custom response and http status in throttle using this version.
+ex.
+
+```ruby
+Rack::Attack.throttle("name", limit: 5, peroid: 5.minutes, http_status: 200, custom_response: {error_code: 9, msg: 'xxx' }.to_json) do |req|
+  if req.path == '/login'
+    req.ip
+  end
+end
+    
+```
+
+
 # Rack::Attack!!!
 *Rack middleware for blocking & throttling abusive requests*
 
